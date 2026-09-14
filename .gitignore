@@ -1,2 +1,4 @@
 /bsimp
+/app/bsimp
 /config.toml
+.env
