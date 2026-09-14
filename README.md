@@ -60,50 +60,6 @@ secret = "minioadmin"
 bsimp -config=/etc/bsimp/config.toml -http=":8080"
 ```
 
-## Docker Compose
-
-Copy the example environment file and fill in your S3 bucket and credentials:
-
-```sh
-cp .env.example .env
-# Edit .env, then start both containers:
-docker compose up -d --build
-```
-
-Open http://localhost:8080 and sign in with username `admin` and password
-`changeme`. Nginx requires HTTP Basic authentication for all app routes, including
-static assets and stream redirects. Only Nginx publishes a host port; the app is
-accessible within the Compose network.
-
-The defaults are set in `docker-compose.yaml`. Override them in the `.env` file
-next to it (use single quotes for passwords containing `$` or `#`):
-
-```dotenv
-AUTH_USERNAME=admin
-AUTH_PASSWORD='replace-with-your-password'
-HTTP_PORT=8080
-```
-
-Apply environment changes with `docker compose up -d`. At each startup, the container entrypoint
-creates `/etc/bsimp/config.toml` from the `S3_*` variables with owner-only
-permissions, and Nginx generates its password file. No host config file is needed.
-`S3_BUCKET` is required; `.env.example` lists all supported settings. Set
-`S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` together. `S3_SESSION_TOKEN` is optional.
-The defaults are region `us-east-1`, signed URL expiry `2h`, and path-style access
-disabled. `.env` is excluded from Git and the image build context.
-
-For S3-compatible storage, its endpoint must be reachable from both the container
-and your browser; `localhost` inside the container refers to that container.
-Standalone usage accepts a TOML file as before. Environment-to-TOML generation
-is handled entirely by the Docker entrypoint.
-
-This setup serves HTTP. Before exposing it to the Internet, replace the default
-credentials and add HTTPS so Basic authentication credentials are encrypted in
-transit. Audio playback redirects to temporary signed S3 URLs; those URLs remain
-usable without Nginx authentication until they expire.
-
-Stop the containers with `docker compose down`.
-
 ## Security
 
 Bsimp doesn't have built-in authentication or rate-limiting. The server should never be exposed to the Internet directly to avoid unexpected S3 bills.
